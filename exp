@@ -1,3 +1,5 @@
+#!/usr/bin/tclsh
+package require Expect
 #!//usr/bin/expect -f
 #set cmd [lrange $argv 0 end]
 #set dest [lindex $argv 0]
@@ -8,22 +10,43 @@
 #set duration [lindex $argv 5]
 set f [open "~/Traffic_Generation/tra.config"]
 set tra_flow [split [read  $f] "\n"]
+close $f
 
+#puts [lindex $tra_flow 0] 
+#puts [lindex $tra_flow 1] 
 foreach flow $tra_flow {
     send_user "!!!!$flow\n"
+	set arg [split $flow " "]
 
-#spawn ssh -p 3022 junlab@140.113.13.136
-spawn ssh -p 3022 junlab@140.113.13.136
-#eval spawn ssh -p $port_d $dest
-expect " "
-send "6\n"
-expect "@"
-send "echo hello\n"
-expect "@"
-#interact timeout 1 return
-send "iperf -s -u -i 1 & disown\n"
-#interact  timeout 1 return
-interact
+	set dest [lindex $arg 0]
+	set port_d [lindex $arg 1]
+	set sourc [lindex $arg 2]
+	set port_s [lindex $arg 3]
+	set bw [lindex $arg 4]
+	set duration [lindex $arg 5]
+	set dest_ip [string range $dest [string first "@" $dest]+1 end]
+	puts "&&&&&&&&&&&&&&& $dest_ip"
+	#spawn ssh -p 3022 junlab@140.113.13.136
+	eval spawn ssh -p $port_d $dest 
+	expect " "
+	send "6\n"
+	expect "@"
+	send "iperf -s -u -i 1 & disown\n"
+	expect "@"
+	send "logout\n"
+
+
+	eval spawn ssh -p $port_s $sourc 
+	expect " "
+	send "6\n"
+	expect "@"
+	send "iperf -c $dest_ip -p 8000 -t $duration -i 1 -b $bw & disown\n"
+	#send "iperf -s -u -i 1 & disown\n"
+	expect "connecting"
+	send "logout\n"
+
+	#break;
+	#interact timeout 1 return
 }
 
 
