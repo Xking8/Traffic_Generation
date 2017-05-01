@@ -1,0 +1,49 @@
+#!//usr/bin/expect -f
+#set cmd [lrange $argv 0 end]
+#set dest [lindex $argv 0]
+#set port_d [lindex $argv 1]
+#set source [lindex $argv 2]
+#set port_s [lindex $argv 3]
+#set bw [lindex $argv 4]
+#set duration [lindex $argv 5]
+set f [open "~/Traffic_Generation/tra.config"]
+set tra_flow [split [read  $f] "\n"]
+
+foreach flow $tra_flow {
+    send_user "!!!!$flow\n"
+
+#spawn ssh -p 3022 junlab@140.113.13.136
+spawn ssh -p 3022 junlab@140.113.13.136
+#eval spawn ssh -p $port_d $dest
+expect " "
+send "6\n"
+expect "@"
+send "echo hello\n"
+expect "@"
+#interact timeout 1 return
+send "iperf -s -u -i 1 & disown\n"
+#interact  timeout 1 return
+interact
+}
+
+
+##spawn ssh -p 3022 junlab@140.113.13.136
+#eval spawn ssh -p $port_d $dest
+#expect " "
+#send "6\n"
+#expect "@"
+#send "echo hello\n"
+#expect "@"
+##interact timeout 1 return
+#send "iperf -s -u -i 1 & disown\n"
+##interact  timeout 1 return
+#interact
+#
+##spawn ssh -p 3033 jun@140.113.13.138
+##expect " "
+##send "6\n"
+##expect "jun"
+##send "echo hello\n"
+##expect "jun"
+##send "iperf -c 140.113.13.136 -p 8000 -t 5 -i 1 -b 100K & disown\n"
+##interact timeout 1 return
