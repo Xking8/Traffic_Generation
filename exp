@@ -8,14 +8,20 @@ package require Expect
 #set port_s [lindex $argv 3]
 #set bw [lindex $argv 4]
 #set duration [lindex $argv 5]
-set f [open "~/Traffic_Generation/tra.config"]
-set tra_flow [split [read  $f] "\n"]
+set timeout 3
+set f [open "~/Traffic_Generation/tra.conf"]
+set tra_flow [split [read  $f] "\n\r"]
 close $f
-
-#puts [lindex $tra_flow 0] 
-#puts [lindex $tra_flow 1] 
+puts "num of line:[llength $tra_flow]"
 foreach flow $tra_flow {
-    send_user "!!!!$flow\n"
+    if {$flow == ""} {
+        break;
+    }
+    puts  "???????????[string index $flow 0]"
+    if { [string index $flow 0] == "#"} {
+        
+        continue;
+    }
 	set arg [split $flow " "]
 
 	set dest [lindex $arg 0]
@@ -25,25 +31,30 @@ foreach flow $tra_flow {
 	set bw [lindex $arg 4]
 	set duration [lindex $arg 5]
 	set dest_ip [string range $dest [string first "@" $dest]+1 end]
-	puts "&&&&&&&&&&&&&&& $dest_ip"
+	puts "&&&&&&&&&&&&&&&$dest  $dest_ip"
 	#spawn ssh -p 3022 junlab@140.113.13.136
 	eval spawn ssh -p $port_d $dest 
-	expect " "
+	expect "assword"
 	send "6\n"
 	expect "@"
 	send "iperf -s -u -i 1 & disown\n"
-	expect "@"
+	expect "listening"
 	send "logout\n"
+	#interact timeout 1 return
+    interact
 
 
+	#eval spawn ssh -p 3033 jun@140.113.13.138
 	eval spawn ssh -p $port_s $sourc 
-	expect " "
+	expect "assword"
 	send "6\n"
 	expect "@"
-	send "iperf -c $dest_ip -p 8000 -t $duration -i 1 -b $bw & disown\n"
-	#send "iperf -s -u -i 1 & disown\n"
+	send "iperf -c $dest_ip -p $port_d -t $duration -i 1 -b $bw & disown\n"
 	expect "connecting"
+
 	send "logout\n"
+	interact 
+    
 
 	#break;
 	#interact timeout 1 return
